@@ -107,11 +107,11 @@ module IntacctRuby
     end
 
     def parse_parameters(parameters)
-      xml_attributes = parameters.is_a?(Hash) \
-                         && parameters.include?(XML_ATTRIBUTES) \
-                         && parameters[XML_ATTRIBUTES].is_a?(Hash) \
-                         && parameters.delete(XML_ATTRIBUTES) \
-                         || nil
+      xml_attributes_present = parameters.is_a?(Hash) \
+                                 && parameters.include?(XML_ATTRIBUTES) \
+                                 && parameters[XML_ATTRIBUTES].is_a?(Hash)
+
+      xml_attributes = parameters.delete(XML_ATTRIBUTES) if xml_attributes_present
 
       [parameters, xml_attributes]
     end
