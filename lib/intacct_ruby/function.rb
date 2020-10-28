@@ -14,11 +14,14 @@ module IntacctRuby
       update
       delete
       getAPISession
-      create_potransaction
       create_supdoc
+      create_potransaction
+      update_potransaction
     ).freeze
 
     CU_TYPES = %w(create update).freeze
+
+    XML_ATTRIBUTES = :xml_attributes
 
     def initialize(function_type, object_type: nil, parameters: )
       @function_type = function_type.to_s
@@ -32,7 +35,9 @@ module IntacctRuby
       xml = Builder::XmlMarkup.new
 
       xml.function controlid: controlid do
-        xml.tag!(@function_type) do
+        @parameters, xml_attributes = parse_parameters(@parameters)
+
+        xml.tag!(@function_type, xml_attributes) do
           if CU_TYPES.include?(@function_type)
             xml.tag!(@object_type) do
               xml << parameter_xml(@parameters)
@@ -62,7 +67,9 @@ module IntacctRuby
       parameters_to_convert.each do |key, value|
         parameter_key = key.to_s
 
-        xml.tag!(parameter_key) do
+        value, xml_attributes = parse_parameters(value)
+
+        xml.tag!(parameter_key, xml_attributes) do
           xml << parameter_value_as_xml(value)
         end
       end
@@ -97,6 +104,16 @@ module IntacctRuby
               "Type #{@object_type} not recognized. Function Type must be " \
               "one of #{ALLOWED_TYPES}."
       end
+    end
+
+    def parse_parameters(parameters)
+      xml_attributes_present = parameters.is_a?(Hash) \
+                                 && parameters.include?(XML_ATTRIBUTES) \
+                                 && parameters[XML_ATTRIBUTES].is_a?(Hash)
+
+      xml_attributes = parameters.delete(XML_ATTRIBUTES) if xml_attributes_present
+
+      [parameters, xml_attributes]
     end
   end
 end
